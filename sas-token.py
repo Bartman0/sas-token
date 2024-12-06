@@ -39,6 +39,7 @@ if __name__ == "__main__":
     parser.add_argument("-c", "--container-name", required=True)
     parser.add_argument("-k", "--key-vault-name", required=False)
     parser.add_argument("-s", "--secret-name", required=False)
+    parser.add_argument("-K", "--container-access-key", required=False)
     args = parser.parse_args()
 
     credential = DefaultAzureCredential()
@@ -46,9 +47,12 @@ if __name__ == "__main__":
     key_vault_name = os.environ["KEY_VAULT_NAME"] or args.key_vault_name
     key_vault_url = f"https://{key_vault_name}.vault.azure.net"
 
-    client = SecretClient(vault_url=key_vault_url, credential=credential)
-    secret_name = args.secret_name or "storage-account-key"
-    account_key = str(client.get_secret(secret_name).value)
+    if args.container_access_key:
+        account_key = args.container_access_key
+    else:
+        client = SecretClient(vault_url=key_vault_url, credential=credential)
+        secret_name = args.secret_name or "storage-account-key"
+        account_key = str(client.get_secret(secret_name).value)
 
     blob_service_client = BlobServiceClient(account_url, credential=credential)
     blob_service_client_account_key = BlobServiceClient(
